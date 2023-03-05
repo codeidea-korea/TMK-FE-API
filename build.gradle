@@ -1,0 +1,104 @@
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.7.9-SNAPSHOT'
+	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+}
+
+group = 'com.binoofactory.alma'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+	maven { url 'https://repo.spring.io/snapshot' }
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.2' 
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.2' 
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+
+	implementation 'org.apache.directory.studio:org.apache.commons.io:2.4'
+	implementation 'commons-fileupload:commons-fileupload:1.4'
+	
+	implementation 'io.springfox:springfox-boot-starter:3.0.0'
+	implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+	implementation 'io.springfox:springfox-spi:3.0.0'
+	implementation 'io.springfox:springfox-bean-validators:3.0.0'
+	
+	implementation 'org.springframework.data:spring-data-redis:2.4.7'
+	implementation 'redis.clients:jedis:3.3.0'
+
+	implementation 'org.apache.poi:poi:3.13'
+	implementation 'org.apache.poi:poi-ooxml:3.13'
+	implementation 'org.apache.commons:commons-dbcp2:2.9.0'
+	
+	implementation 'org.apache.commons:commons-lang3:3.12.0'
+	
+	implementation 'com.google.code.gson:gson:2.10'
+	
+	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.4'
+	
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+	annotationProcessor 'org.projectlombok:lombok'
+//	implementation 'mysql:mysql-connector-java' // AWS RDS 세팅보고 수정
+	
+	implementation "com.querydsl:querydsl-jpa:5.0.0"
+	implementation "com.querydsl:querydsl-apt:5.0.0"
+	implementation "com.querydsl:querydsl-core:5.0.0"
+//	annotationProcessor "com.querydsl:querydsl-apt:5.0.0"
+
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	
+//	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+def querydslDir = "$buildDir/generated/querydsl"
+ 
+querydsl {
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+ 
+sourceSets {
+    main.java.srcDir querydslDir
+}
+ 
+ 
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
+}
+ 
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    querydsl.extendsFrom compileClasspath
+}

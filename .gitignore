@@ -1,0 +1,12 @@
+.settings
+target
+
+.classpath
+.project
+.docker-conf/mariadb/initdb.d
+
+jasypt-encryptor-password.key
+build
+.gradle
+gradle
+bin
