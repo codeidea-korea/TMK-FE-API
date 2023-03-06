@@ -6,7 +6,10 @@ import com.binoofactory.alma.almabe.common.model.BfListResponse;
 import com.binoofactory.alma.almabe.common.model.BfPage;
 
 public interface BfCRUDService<T> {
+
     T add(T obj, HttpServletRequest httpServletRequest) throws Exception;
+
+    T generate(T obj);
 
     T edit(T obj, HttpServletRequest httpServletRequest) throws Exception;
 
@@ -16,5 +19,4 @@ public interface BfCRUDService<T> {
 
     BfListResponse<T> findAll(T obj, BfPage bfPage, HttpServletRequest httpServletRequest) throws Exception;
 
-    T generate(T obj);
 }

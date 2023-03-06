@@ -100,7 +100,7 @@ public class UserServiceImplTest extends BDDMockito {
         HttpServerErrorException exception = Assertions.assertThrows(HttpServerErrorException.class,
             () -> userService.login(requestParam, request));
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-        Assertions.assertEquals("400 정보가 없습니다.", exception.getMessage());
+        Assertions.assertEquals("400 회원 정보가 존재하지 않습니다.", exception.getMessage());
     }
 
     @Test
@@ -123,7 +123,7 @@ public class UserServiceImplTest extends BDDMockito {
         HttpServerErrorException exception = Assertions.assertThrows(HttpServerErrorException.class,
             () -> userService.login(requestParam, request));
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-        Assertions.assertEquals("400 비밀번호가 틀립니다.", exception.getMessage());
+        Assertions.assertEquals("400 비밀번호가 일치하지 않습니다.", exception.getMessage());
     }
 
     // 로그인 해피패스는 제외

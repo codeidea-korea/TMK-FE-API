@@ -23,32 +23,30 @@ public class ResponseHandler extends ResponseEntityExceptionHandler {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @ExceptionHandler(Exception.class)
-    public final ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
-        Map<String, Object> exceptionResponse = new HashMap<String, Object>();
+    public final ResponseEntity<Object> handleAllExceptions(Exception e, WebRequest request) {
+        Map<String, Object> exceptionResponse = new HashMap<>();
+
         exceptionResponse.put("result", false);
-        exceptionResponse.put("msg", ex.getMessage());
         exceptionResponse.put("time", new Date());
+        exceptionResponse.put("msg", e.getMessage());
         exceptionResponse.put("details", request.getDescription(false));
 
-        ex.getStackTrace();
-        logger.debug(ex.getMessage());
-        logger.debug(ex.getCause().toString());
+        e.getStackTrace();
 
         return new ResponseEntity(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(HttpServerErrorException.class)
-    public final ResponseEntity<Object> handleHttpServerErrorException(HttpServerErrorException ex,
-        WebRequest request) {
-        Map<String, Object> exceptionResponse = new HashMap<String, Object>();
+    public final ResponseEntity<Object> handleHttpServerErrorException(HttpServerErrorException e) {
+        Map<String, Object> exceptionResponse = new HashMap<>();
         exceptionResponse.put("result", false);
-        exceptionResponse.put("msg", ex.getMessage());
-        exceptionResponse.put("code", ex.getStatusCode());
+        exceptionResponse.put("time", new Date());
+        exceptionResponse.put("code", e.getStatusCode());
+        exceptionResponse.put("msg", e.getMessage());
 
-        ex.getStackTrace();
-        logger.debug(ex.getMessage());
-        logger.debug(ex.getCause().toString());
+        e.getStackTrace();
 
-        return new ResponseEntity(exceptionResponse, ex.getStatusCode());
+        return new ResponseEntity(exceptionResponse, e.getStatusCode());
     }
+
 }

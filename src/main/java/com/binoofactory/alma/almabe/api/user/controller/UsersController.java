@@ -2,9 +2,11 @@ package com.binoofactory.alma.almabe.api.user.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +39,7 @@ import io.swagger.annotations.ApiParam;
 
 @RestController
 @Api(tags = {"회원"}, description = "User", basePath = "")
+@Slf4j
 public class UsersController extends BfAbsUserController {
 
     private final DirectSendAPIService directSendAPIService;
@@ -55,8 +58,8 @@ public class UsersController extends BfAbsUserController {
 
     @GetMapping(value = "/user/check/{userId}")
     @ApiOperation(value = "회원 중복 검사", notes = "회원 중복 검사")
-    public ResponseEntity checkDuplicated(@PathVariable("userId") @ApiParam("아이디") String userId) throws Exception {
-        return super.checkDuplicated(userId);
+    public ResponseEntity checkUserId(@PathVariable("userId") @ApiParam("아이디") String userId) throws Exception {
+        return super.checkUserId(userId);
     }
 
     @PostMapping(value = "/user/add")
@@ -80,7 +83,7 @@ public class UsersController extends BfAbsUserController {
         return super.findMe(request);
     }
 
-    @GetMapping(value = "/user/check/expired")
+    @GetMapping(value = "/user/check/tokenExpired")
     @ApiOperation(value = "회원 토큰 만료 여부 검사", notes = "회원 토큰 만료 여부 검사")
     public ResponseEntity checkTokenExpired(HttpServletRequest request) {
         return ResponseUtil.sendResponse(userJwtService.checkTokenExpired(request));
@@ -112,22 +115,22 @@ public class UsersController extends BfAbsUserController {
     public ResponseEntity remove(HttpServletRequest request) throws Exception {
         Users user = userJwtService.getUserInfoByToken(request);
 
-        userService.remove(user.getId(), request);
+        userService.remove(user, request);
         return ResponseUtil.sendResponse(null);
     }
 
     @GetMapping(value = "/user/findId")
-    @ApiOperation(value = "회원 아이디 찾기", notes = "회원 아이디 찾기")
-    public ResponseEntity<Users> findEmail(
+    @ApiOperation(value = "아이디 찾기", notes = "아이디 찾기")
+    public ResponseEntity<Users> findId(
             @RequestParam(value = "name", defaultValue = "김유저") String name,
-            @RequestParam(value = "phoneNo", defaultValue = "01011111111") String phoneNo,
+            @RequestParam(value = "email", defaultValue = "user1@codeidea.dev") String email,
             HttpServletRequest request) throws Exception {
         BfListResponse<Users> users = userService.findAll(Users.builder()
             .deleted(false)
             .name(name)
-            .phoneNo(phoneNo)
+            .email(email)
             .build(), new BfPage(1, 5), request);
-        if(users.getCount() < 0) {
+        if(users.getList().size() == 0) {
             throw new HttpServerErrorException(HttpStatus.BAD_REQUEST, "회원 정보가 존재하지 않습니다.");
         }
 
@@ -137,20 +140,17 @@ public class UsersController extends BfAbsUserController {
     @PostMapping(value = "/user/resetPassword")
     @ApiOperation(value = "비밀번호 재설정", notes = "비밀번호 재설정")
     public ResponseEntity<Users> resetPassword(
-            @RequestParam(value = "name", defaultValue = "김유저") String name,
+            @RequestParam(value = "userId", defaultValue = "user1") String userId,
             @RequestParam(value = "email", defaultValue = "user1@codeidea.dev") String email,
-            @RequestParam(value = "phoneNo", defaultValue = "01011111111") String phoneNo,
             HttpServletRequest request) throws Exception {
         BfListResponse<Users> users = userService.findAll(Users.builder()
                 .deleted(false)
-                .name(name)
+                .userId(userId)
                 .email(email)
-                .phoneNo(phoneNo)
                 .build(), new BfPage(1, 5), request);
-        if(users.getCount() < 0) {
+        if(users.getList().size() == 0) {
             throw new HttpServerErrorException(HttpStatus.BAD_REQUEST, "회원 정보가 존재하지 않습니다.");
         }
-
         Users user = users.getList().get(0);
 
         String password = Math.round(Math.random() * 1000000) + "";
@@ -158,14 +158,16 @@ public class UsersController extends BfAbsUserController {
 
         userService.edit(user, request);
 
+        /*
         Map<String, String> bodyMap = new HashMap<>();
 
         bodyMap.put("title", "임시 비밀번호입니다.");
         bodyMap.put("message", "임시 비밀번호는 [" + password + "]입니다.");
         bodyMap.put("name", user.getName());
-        bodyMap.put("phoneNo", user.getPhoneNo());
+        bodyMap.put("phoneNo", user.getMobilePhoneNo());
 
         directSendAPIService.sendSMS(user.getPhoneNo(), bodyMap);
+        */
         return ResponseUtil.sendResponse(password);
     }
 

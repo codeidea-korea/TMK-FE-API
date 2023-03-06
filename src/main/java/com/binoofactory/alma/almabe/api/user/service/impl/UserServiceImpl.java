@@ -6,15 +6,13 @@ import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpServerErrorException;
 
-import com.binoofactory.alma.almabe.api.common.service.DirectSendAPIService;
-import com.binoofactory.alma.almabe.api.user.data.UserStatus;
-import com.binoofactory.alma.almabe.api.user.data.UserType;
 import com.binoofactory.alma.almabe.api.user.model.docs.LoginHistory;
 import com.binoofactory.alma.almabe.api.user.model.entity.Users;
 import com.binoofactory.alma.almabe.api.user.repos.jpa.UserRepos;
@@ -29,6 +27,7 @@ import com.binoofactory.alma.almabe.common.utils.DateUtil;
 import com.binoofactory.alma.almabe.common.utils.PasswordUtil;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepos userRepos;
@@ -41,8 +40,7 @@ public class UserServiceImpl implements UserService {
     private final DateUtil dateUtil;
 
     @Autowired
-    public UserServiceImpl(
-            UserRepos userRepos, UsersDslRepos userDslRepos, LoginHistoryRepos loginHistoryRepos,
+    public UserServiceImpl(UserRepos userRepos, UsersDslRepos userDslRepos, LoginHistoryRepos loginHistoryRepos,
             UserJwtService userJwtService, PasswordUtil passwordUtil, DateUtil dateUtil) {
 
         this.userRepos = userRepos;
@@ -94,41 +92,42 @@ public class UserServiceImpl implements UserService {
     @Override
     public BfToken login(Users user, HttpServletRequest request) throws Exception {
         String template =
-                "Addr:" + request.getRemoteAddr()
-                        + "/Host:" + request.getRemoteHost()
-                        + "/User:" + request.getRemoteUser();
+            "Addr:" + request.getRemoteAddr()
+            + "/Host:" + request.getRemoteHost()
+            + "/User:" + request.getRemoteUser();
 
         Users userInfos = userRepos.findByUserId(user.getUserId());
         if(Objects.isNull(userInfos) || userInfos.getDeleted()) {
             loginHistoryRepos.save(LoginHistory.builder()
-                    .isSuccess(false)
-                    .createDt(LocalDateTime.now())
-                    .userId(user.getUserId())
-                    .password(user.getPassword())
-                    .platformInfo(template)
-                    .build());
+                .isSuccess(false)
+                .createDt(LocalDateTime.now())
+                .userId(user.getUserId())
+                .password(user.getPassword())
+                .platformInfo(template)
+                .build());
 
             throw new HttpServerErrorException(HttpStatus.BAD_REQUEST, "회원 정보가 존재하지 않습니다.");
         }
 
         if(!passwordUtil.checkEqual(userInfos.getPassword(), user.getPassword())) {
             loginHistoryRepos.save(LoginHistory.builder()
-                    .isSuccess(false)
-                    .createDt(LocalDateTime.now())
-                    .userId(user.getUserId())
-                    .password(user.getPassword())
-                    .platformInfo(template)
-                    .build());
-            throw new HttpServerErrorException(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
-        }
-
-        loginHistoryRepos.save(LoginHistory.builder()
-                .isSuccess(true)
+                .isSuccess(false)
                 .createDt(LocalDateTime.now())
                 .userId(user.getUserId())
                 .password(user.getPassword())
                 .platformInfo(template)
                 .build());
+
+            throw new HttpServerErrorException(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
+        }
+
+        loginHistoryRepos.save(LoginHistory.builder()
+            .isSuccess(true)
+            .createDt(LocalDateTime.now())
+            .userId(user.getUserId())
+            .password(user.getPassword())
+            .platformInfo(template)
+            .build());
 
         BfToken token = userJwtService.generateToken(userInfos, template);
         return token;
@@ -169,6 +168,11 @@ public class UserServiceImpl implements UserService {
             throw new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "권한이 부족합니다.");
         }
 
+        user.setDeleted(false);
+        user.setCreatedAt(myInfo.getCreatedAt());
+        user.setUserId(myInfo.getUserId());
+        user.setPassword(myInfo.getPassword());
+        log.error("user: {}", user);
         return userRepos.save(user);
     }
 
@@ -185,7 +189,16 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setDeleted(true);
+        log.error("user: {}", user);
         userRepos.save(user);
+    }
+
+    @Override
+    public BfListResponse<Users> findAll(Users user, BfPage bfPage, HttpServletRequest request) throws Exception {
+        List<Users> list = userDslRepos.findAll(user, bfPage);
+        long count = userDslRepos.countAll(user);
+
+        return new BfListResponse(list, count, bfPage);
     }
 
     @Override
@@ -196,10 +209,5 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Users find(long id, HttpServletRequest request) throws Exception { return null; }
-
-    @Override
-    public BfListResponse<Users> findAll(Users user, BfPage bfPage, HttpServletRequest request) throws Exception {
-        return null;
-    }
 
 }

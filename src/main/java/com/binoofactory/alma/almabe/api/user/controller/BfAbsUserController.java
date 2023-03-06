@@ -22,7 +22,7 @@ public abstract class BfAbsUserController {
         this.userJwtService = userJwtService;
     }
 
-    public ResponseEntity checkDuplicated(String userId) throws Exception {
+    public ResponseEntity checkUserId(String userId) throws Exception {
         return ResponseUtil.sendResponse(userService.checkUserId(userId));
     }
 

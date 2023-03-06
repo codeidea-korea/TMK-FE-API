@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AlmabeApplication {
+public class TmkFeApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(AlmabeApplication.class, args);
+        SpringApplication.run(TmkFeApiApplication.class, args);
     }
 
 }

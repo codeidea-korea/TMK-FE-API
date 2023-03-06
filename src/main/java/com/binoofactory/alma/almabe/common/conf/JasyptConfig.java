@@ -61,8 +61,8 @@ public class JasyptConfig {
             }
         }
         try {
-            // Reader 방식을 바꿈 (import java.io.File → import java.nio.file.Files)
-            /*
+            // Reader 방식이 2개:   (운영서버 = import java.io.File) ↔ (개발서버 = import java.nio.file.Files)
+
             keyFile = new File("jasypt-encryptor-password.bfkey");
             FileReader reader = new FileReader(keyFile);
             BufferedReader bufReader = new BufferedReader(reader);
@@ -71,9 +71,12 @@ public class JasyptConfig {
             reader.close();
 
             return result;
-            */
+
+
+            /*
             ClassPathResource resource = new ClassPathResource("jasypt-encryptor-password.bfkey");
             return Files.readAllLines(Paths.get(resource.getURI())).stream().collect(Collectors.joining(""));
+            */
         } catch (IOException e) {
             System.out.println(e.getStackTrace());
             throw new RuntimeException("Not found Jasypt password file.");
